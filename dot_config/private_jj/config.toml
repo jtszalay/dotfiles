@@ -1,0 +1,33 @@
+#:schema https://docs.jj-vcs.dev/latest/config-schema.json
+
+[user]
+name = "James Szalay"
+email = "james@ngrok.com"
+
+[remotes.origin]
+auto-track-bookmarks = "glob:james/*"
+
+[ui]
+editor = "vim"
+default-command = "log"
+diff-editor = ":builtin"
+diff-formatter = ":git"
+pager = ["delta"]
+conflict-marker-style = "git"
+
+[revsets]
+log = "@ | ancestors(trunk()..((visible_heads() & mine()) | bookmarks()), 2) | trunk()"
+
+[revset-aliases]
+_ = 'all:roots(main..(bookmarks() & mine()))'
+'closest_bookmark(to)' = 'heads(::to & bookmarks())'
+"trunk()" = "main@origin"
+
+[aliases]
+tug = ["bookmark", "move", "--from", "closest_bookmark(@-)", "--to", "@-"]
+s = ["squash"]
+si = ["squash", "--interactive"]
+flatten = ["abandon", "empty() & (trunk()..ancestors(@))"]
+
+[snapshot]
+max-new-file-size = 3649952

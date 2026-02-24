@@ -1,0 +1,39 @@
+function ne() {
+  export NGROK_ENV="${1:-local}"
+}
+
+alias cp='cp --reflink=auto --sparse=always'
+alias fixssh='export SSH_AUTH_SOCK=$(ls -t /tmp/ssh-**/* | head -1)'
+alias flip_table='echo '\''(╯°□°）╯︵ ┻━┻'\'''
+alias grep='grep --colour=auto'
+alias k='kubectl'
+alias kubeproxy='kubectl proxy --address 0.0.0.0 --accept-hosts ".*" --port 8001'
+alias ls='ls --color=auto'
+alias r='direnv reload'
+alias shrug='echo '\''¯\_(ツ)_/¯'\'''
+alias simple_server='nix-shell -p python3 --command '\''python3 -m http.server 8000'\'''
+alias jprco='gh pr list --author "@me" | cut -f1,2 | gum choose --height=10 | cut -f1 | xargs -I{} sh -c '\''
+  branch=$(gh pr view {} --json headRefName -q .headRefName)
+  jj git fetch
+  jj new "$branch@origin"
+'\'''
+alias jobsolete='jj log -r "mine() & empty()"'  # find empty commits to clean up
+
+# Most impactful (high frequency commands)
+alias jgp='jj git push'
+alias jn='jj new'
+alias js='jj squash'
+alias jt='jj tug'
+
+# Common workflows
+alias jfm='jj git fetch && jj new main'  # fresh start from main
+alias jrm='jj rebase -d main'
+alias je='jj edit'
+alias ja='jj abandon'
+alias ju='jj undo'
+alias jst='jj status'
+
+# Navigation shortcuts
+alias je-='jj edit @-'
+alias je+='jj edit @+'
+alias wip='jj describe -m "wip" && jj new'
