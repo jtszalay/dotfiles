@@ -15,17 +15,16 @@ setopt HIST_SAVE_NO_DUPS         # Don't write duplicate entries in the history 
 setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry.
 setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
 
-# ohmyzsh (optional — only loads if installed)
-if [[ -d "$HOME/.oh-my-zsh" ]]; then
-  export ZSH="$HOME/.oh-my-zsh"
-  HIST_STAMPS="mm/dd/yyyy"
-  plugins=(git gh jj bun aliases)
-  source $ZSH/oh-my-zsh.sh
-fi
-
 unsetopt autocd
 
 export PATH=$HOME/bin:$HOME/.local/bin:$PATH
+
+# Strip stale mise install paths injected by parent processes — most
+# commonly VS Code Remote's resolved shell env, captured at server
+# startup and replayed into every terminal. Tools migrated to nix; the
+# VS Code Server is long-lived and may still hand out PATHs from when
+# mise was active.
+PATH=$(printf '%s' "$PATH" | tr ':' '\n' | grep -vE '/\.local/share/mise/installs/' | paste -sd:)
 
 # atuin (enhanced shell history)
 if [[ -f "$HOME/.atuin/bin/env" ]]; then
@@ -33,11 +32,10 @@ if [[ -f "$HOME/.atuin/bin/env" ]]; then
   eval "$(atuin init zsh)"
 fi
 
-eval "$(~/.local/bin/mise activate zsh)"
 eval "$(starship init zsh)"
 
 source <(jj util completion zsh)
 
-export ND_SSO_NO_BROWSER=true
-
 source ~/.zsh_aliases
+
+eval "$(zellij setup --generate-auto-start zsh)"

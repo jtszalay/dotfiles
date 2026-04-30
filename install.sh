@@ -1,42 +1,83 @@
 #!/usr/bin/env bash
-#
-# Copyright (c) 2020 Tom Payne
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+set -euo pipefail
+cd "$(dirname "$0")"
 
-set -e
+# 1. Symlink home/* into $HOME — works even without nix; never blocks the rest.
+find home -type f | while read -r src; do
+  dest="$HOME/${src#home/}"
+  mkdir -p "$(dirname "$dest")"
+  ln -srfv "$PWD/$src" "$dest"
+done
 
-if [ ! "$(command -v chezmoi)" ]; then
-  bin_dir="$HOME/.local/bin"
-  chezmoi="$bin_dir/chezmoi"
-  if [ "$(command -v curl)" ]; then
-    sh -c "$(curl -fsSL https://chezmoi.io/get)" -- -b "$bin_dir"
-  elif [ "$(command -v wget)" ]; then
-    sh -c "$(wget -qO- https://chezmoi.io/get)" -- -b "$bin_dir"
-  else
-    echo "To install chezmoi, you must have curl or wget installed." >&2
-    exit 1
+# 2. Set default shell to zsh if it isn't already.
+zsh_path="$(command -v zsh 2>/dev/null || true)"
+if [ -z "$zsh_path" ]; then
+  echo "warning: zsh not found in PATH; default shell unchanged" >&2
+elif [ "$(getent passwd "$USER" | cut -d: -f7)" != "$zsh_path" ]; then
+  if ! grep -qxF "$zsh_path" /etc/shells 2>/dev/null; then
+    echo "$zsh_path missing from /etc/shells; adding (sudo)…"
+    echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
   fi
-else
-  chezmoi=chezmoi
+  # `chsh` (without sudo) authenticates the user via PAM and prompts for a
+  # password — which is awkward on devboxes / Codespaces where the user has
+  # passwordless sudo but no actual password. Run chsh as root targeting
+  # the user explicitly to skip the PAM auth.
+  if sudo chsh -s "$zsh_path" "$USER"; then
+    echo "Default shell set to $zsh_path. Open a new login session to use it."
+  else
+    echo "warning: chsh failed; default shell unchanged" >&2
+  fi
 fi
 
-# POSIX way to get script's dir: https://stackoverflow.com/a/29834779/12156188
-script_dir="$(cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P)"
-"$chezmoi" init --source="$script_dir" --apply
+# 3. Bootstrap nix if not present (Determinate Systems installer; --no-confirm
+# for non-interactive boots like Codespaces dotfiles install).
+if ! command -v nix >/dev/null 2>&1; then
+  echo "nix not found — installing Determinate Nix…"
+  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
+    | sh -s -- install --determinate --no-confirm
+  # Source the daemon profile so nix is on PATH for the rest of this run.
+  for f in /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh /etc/profile.d/nix.sh; do
+    if [ -f "$f" ]; then
+      # shellcheck source=/dev/null
+      . "$f"
+      break
+    fi
+  done
+fi
+
+# 4. Start nix-daemon if it isn't running. Containers without systemd
+# (Codespaces, plain Docker) don't auto-start it, so `nix profile add`
+# fails with "cannot connect to socket".
+if command -v nix >/dev/null 2>&1 && ! nix store ping >/dev/null 2>&1; then
+  # Resolve the full path: nix-daemon usually isn't on root's PATH (it
+  # lives under /nix/var/nix/profiles/default/bin), and sudo searches its
+  # own PATH unless given an absolute path.
+  nix_daemon_path="$(command -v nix-daemon 2>/dev/null || true)"
+  if [ -n "$nix_daemon_path" ]; then
+    echo "Starting nix-daemon in background (no systemd — common in containers)…"
+    nix_daemon_log=/tmp/nix-daemon.log
+    sudo -b sh -c "$nix_daemon_path >$nix_daemon_log 2>&1"
+    # Poll up to 10s for the socket to appear.
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+      [ -S /nix/var/nix/daemon-socket/socket ] && break
+      sleep 1
+    done
+    if ! nix store ping >/dev/null 2>&1; then
+      echo "  warning: nix-daemon didn't come up. Last 20 lines of $nix_daemon_log:" >&2
+      tail -20 "$nix_daemon_log" >&2 || true
+    fi
+  fi
+fi
+
+# 5. (Re)install nix profile from the flake. Best-effort — print recovery
+# guidance instead of aborting if the daemon still isn't reachable.
+if command -v nix >/dev/null 2>&1; then
+  nix profile remove dotfiles 2>/dev/null || true
+  nix profile remove flake 2>/dev/null || true
+  if ! nix profile add "$PWD"; then
+    echo "warning: 'nix profile add' failed." >&2
+    echo "  If it's a daemon issue: sudo nix-daemon & ; nix profile add $PWD" >&2
+  fi
+else
+  echo "warning: nix not on PATH after install; open a fresh shell and re-run ./install.sh" >&2
+fi
