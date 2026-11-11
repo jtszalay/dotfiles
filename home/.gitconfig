@@ -1,0 +1,97 @@
+[alias]
+        branch-point = "!bash -c 'diff --old-line-format='' --new-line-format='' <(git rev-list --first-parent \"${1:-`git default-branch`}\") <(git rev-list --first-parent \"${2:-HEAD}\") | head -1' -"
+        cdag = "cherry-dag"
+        cfp = "!git commit -a --amend --no-edit && git push --force-with-lease"
+        cherry-dag = "!bash -c 'git log --graph --decorate --oneline HEAD...$(git branch-point)'"
+        dag = "log --graph --decorate --oneline"
+        default-branch = "!echo main"
+        dm = "!git branch --merged main | grep -v '^\\* main' | xargs -n 1 -r git branch -d"
+        fp = "fetch --all --prune"
+        hist = "log --pretty=format:'%C(yellow)%h%Creset %Cblue<%ae>%Creset %Cgreen(%cr)%Creset | %s %Cred%d%Creset' --graph --date=short"
+        history = "log --pretty=format:'%C(yellow)%h%Creset %Cblue<%ae>%Creset %Cgreen(%cr)%Creset | %s %Cred%d%Creset' --graph --date=short"
+        lg = "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%ar) %C(bold blue)<%an>%Creset' --abbrev-commit"
+        lgm = "lg --merges --first-parent"
+        oldest-ancestor = "!bash -c 'diff --old-line-format='' --new-line-format='' <(git rev-list --first-parent \"${1:-`git default-branch`}\") <(git rev-list --first-parent \"${2:-HEAD}\") | head -1' -"
+        stump = "log --all --graph --decorate --oneline --simplify-by-decoration"
+        tree = "log --all --graph --decorate --oneline"
+        uncommit = "reset --soft HEAD^"
+        unstage = "reset HEAD"
+        unstaged = "diff"
+
+[delta]
+        light = "true"
+
+[fetch]
+        prune = "true"
+
+[github]
+        user = "jtszalay"
+
+[pull]
+        ff = "only"
+
+[push]
+        autoSetupRemote = true
+        default = "current"
+
+[remote "origin"]
+        prune = "true"
+
+[status]
+        short = "true"
+
+[user]
+        email = "james@ngrok.com"
+        name = "James Szalay"
+
+[core]
+        excludesfile = ~/.gitignore_global
+[branch]
+        sort = -committerdate
+[safe]
+	directory = /var/lib/ngrok/bazel/ngrok-bazel/bazel-user-root/output/execroot/_main/.git
+	directory = /var/lib/ngrok/bazel/ngrok-bazel/bazel-user-root/output/execroot/_main/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.git
+	directory = /opt/ngrok/.cache/ngrok-api-python/.git
+	directory = /opt/ngrok/.cache/ngrok-api-python/.git
+[init]
+	defaultBranch = main

@@ -1,0 +1,2 @@
+# ~/.gitignore_global ignores vim swap files with [._]s[a-w][a-z], which also matches .ssh.
+!/home/.ssh/

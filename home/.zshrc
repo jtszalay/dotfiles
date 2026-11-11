@@ -27,8 +27,9 @@ export PATH=$HOME/.bun/bin:$HOME/bin:$HOME/.local/bin:$PATH
 PATH=$(printf '%s' "$PATH" | tr ':' '\n' | grep -vE '/\.local/share/mise/installs/' | paste -sd:)
 
 # atuin (enhanced shell history)
-if [[ -f "$HOME/.atuin/bin/env" ]]; then
-  . "$HOME/.atuin/bin/env"
+# The nix profile provides atuin. Older boxes have the upstream installer's copy in ~/.atuin.
+[[ -f "$HOME/.atuin/bin/env" ]] && . "$HOME/.atuin/bin/env"
+if command -v atuin >/dev/null 2>&1; then
   eval "$(atuin init zsh)"
 fi
 
