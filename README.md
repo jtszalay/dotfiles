@@ -38,10 +38,10 @@ Tailscale on, `tag:work` advertised and tailnet members allowed. The tailnet
 hostname is `rex-%l`: systemd expands `%l` to the short hostname, so each box
 gets its own node (for example `rex-devbox-james`).
 
-On a new box, approve the node once. The login URL is in the log:
+On a new box, approve the node once. Get the sign-in link from your laptop:
 
 ```sh
-just rex-status     # or: journalctl --user -u rex
+ssh <devbox> just setup-rex-tailscale
 ```
 
 ## Day-to-day
@@ -73,6 +73,8 @@ uncommitted changes here.
 └── home/              # mirror of $HOME, symlinked in by install.sh
     ├── .gitconfig
     ├── .gitignore_global
+    ├── .justfile      # recipes run from $HOME, e.g. `just setup-rex-tailscale`
+    ├── .zshenv        # nix on PATH for `ssh box <cmd>`
     ├── .zshrc
     ├── .zsh_aliases
     ├── .ssh/rc        # keeps ~/.ssh/agent.sock pointed at the newest agent
