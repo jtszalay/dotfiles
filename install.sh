@@ -3,6 +3,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 # 1. Symlink home/* into $HOME — works even without nix; never blocks the rest.
+# sshd ignores ~/.ssh/rc and authorized_keys when ~/.ssh is group- or world-writable.
+mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
 find home -type f | while read -r src; do
   dest="$HOME/${src#home/}"
   mkdir -p "$(dirname "$dest")"
@@ -80,4 +82,21 @@ if command -v nix >/dev/null 2>&1; then
   fi
 else
   echo "warning: nix not on PATH after install; open a fresh shell and re-run ./install.sh" >&2
+fi
+
+# 6. Activate home-manager from the pinned flake input. This installs rex and its
+# systemd user service. Files home-manager would overwrite are kept as *.hm-bak.
+if command -v nix >/dev/null 2>&1; then
+  if hm_gen="$(nix build --no-link --print-out-paths "$PWD#homeConfigurations.james.activationPackage")"; then
+    HOME_MANAGER_BACKUP_EXT=hm-bak "$hm_gen/activate" \
+      || echo "warning: home-manager activation failed" >&2
+  else
+    echo "warning: home-manager build failed" >&2
+  fi
+fi
+
+# 7. Keep user services (the rex server) running while logged out.
+if command -v loginctl >/dev/null 2>&1 \
+  && [ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null)" != yes ]; then
+  sudo loginctl enable-linger "$USER" || echo "warning: enable-linger failed" >&2
 fi
