@@ -31,20 +31,21 @@ elif [ "$(getent passwd "$USER" | cut -d: -f7)" != "$zsh_path" ]; then
   fi
 fi
 
-# 3. Bootstrap nix if not present (Determinate Systems installer; --no-confirm
-# for non-interactive boots like Codespaces dotfiles install).
+# 3. Load nix if it is installed. Devboxes come with nix, but devbox provisioning
+# runs this script in a non-login shell (sudo -u <user> bash -c), which does not
+# source the nix profile.
+nix_profile=/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+# shellcheck source=/dev/null
+[ -f "$nix_profile" ] && . "$nix_profile"
+
+# Install Determinate Nix if it is still missing. --no-confirm is for
+# non-interactive boots such as Codespaces.
 if ! command -v nix >/dev/null 2>&1; then
   echo "nix not found — installing Determinate Nix…"
   curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
     | sh -s -- install --determinate --no-confirm
-  # Source the daemon profile so nix is on PATH for the rest of this run.
-  for f in /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh /etc/profile.d/nix.sh; do
-    if [ -f "$f" ]; then
-      # shellcheck source=/dev/null
-      . "$f"
-      break
-    fi
-  done
+  # shellcheck source=/dev/null
+  [ -f "$nix_profile" ] && . "$nix_profile"
 fi
 
 # 4. Start nix-daemon if it isn't running. Containers without systemd
