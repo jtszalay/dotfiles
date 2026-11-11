@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Pick a screen session with gum and resume it.
+# Each session name is annotated with what's actually running inside it:
+# screen's window shells are their own session leaders (SID == PID), with
+# PPID pointing back to the screen server PID, so we walk one level down
+# from each window shell to find the foreground command.
+set -euo pipefail
+
+session_summary() {
+	local spid=$1
+	local cmds=() cmd wpid
+	while read -r wpid; do
+		[ -z "$wpid" ] && continue
+		cmd=$(ps --ppid "$wpid" -o cmd= | head -1)
+		cmds+=("${cmd:-idle}")
+	done < <(ps --ppid "$spid" -o pid=)
+	local IFS='; '
+	echo "${cmds[*]:-idle}"
+}
+
+mapfile -t sessions < <(screen -ls | awk '/\t[0-9]+\./ {print $1}')
+
+if [ "${#sessions[@]}" -eq 0 ]; then
+	echo "No screen sessions found." >&2
+	exit 1
+fi
+
+entries=()
+for s in "${sessions[@]}"; do
+	pid=${s%%.*}
+	entries+=("$s  [$(session_summary "$pid")]")
+done
+
+picked=$(printf '%s\n' "${entries[@]}" | gum choose)
+
+if [ -z "${picked:-}" ]; then
+	exit 1
+fi
+
+choice=${picked%%  \[*}
+exec screen -r "$choice"

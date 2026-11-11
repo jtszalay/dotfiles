@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# Find the latest version of the clippy-buddy binary
+latest=$(ls -1t /home/james/.vscode-server/data/User/globalStorage/pelmers.remote-clippy-buddy-vscode/clippy-buddy/ | head -n -1)
+
+exec /home/james/.vscode-server/data/User/globalStorage/pelmers.remote-clippy-buddy-vscode/clippy-buddy/$latest/pbpaste "$@"
