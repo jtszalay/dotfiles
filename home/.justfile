@@ -1,4 +1,23 @@
-# Recipes that run from $HOME, for example `ssh <devbox> just setup-rex-tailscale`.
+# Recipes that run from $HOME, for example `ssh -t <devbox> just onboard`.
+
+# Set up a new box: log in to atuin, then add the rex server to the tailnet
+onboard: setup-atuin setup-rex-tailscale
+
+# Log in to atuin sync and pull history
+setup-atuin:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -s "${XDG_DATA_HOME:-$HOME/.local/share}/atuin/session" ]; then
+      echo "atuin is already logged in."
+    else
+      if [ ! -t 0 ]; then
+        echo "atuin login prompts for a password and key. Run: ssh -t <devbox> just onboard" >&2
+        exit 1
+      fi
+      echo "Log in to atuin. Get the key on a machine that is logged in: atuin key"
+      atuin login -u ngrokjames
+    fi
+    atuin sync
 
 # Print the Tailscale sign-in link for the rex server, or its tailnet URL when it is already enrolled
 setup-rex-tailscale:

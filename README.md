@@ -38,10 +38,10 @@ Tailscale on, `tag:work` advertised and tailnet members allowed. The tailnet
 hostname is `rex-%l`: systemd expands `%l` to the short hostname, so each box
 gets its own node (for example `rex-devbox-james`).
 
-On a new box, approve the node once. Get the sign-in link from your laptop:
+On a new box, log in to atuin and approve the rex node once, from your laptop:
 
 ```sh
-ssh <devbox> just setup-rex-tailscale
+ssh -t <devbox> just onboard   # atuin login, then the rex sign-in link
 ```
 
 ## Day-to-day
