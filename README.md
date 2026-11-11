@@ -19,7 +19,7 @@ cd ~/dotfiles && ./install.sh
 4. Starts `nix-daemon` if it's not running (containers without systemd).
 5. Installs the nix profile entry from this flake.
 6. Activates home-manager (`homeConfigurations.james`). This installs rex
-   and runs `rex server` as a systemd user service on the tailnet.
+   and runs `rex server` as a systemd user service.
    Files it would replace are kept as `*.hm-bak`.
 7. Enables systemd linger, so the rex server keeps running after logout.
 
@@ -33,16 +33,45 @@ npm install -g jj-stack @openai/codex
 
 ## Rex
 
-`home.nix` runs the rex server as the `rex` systemd user service, with
-Tailscale on, `tag:work` advertised and tailnet members allowed. The tailnet
-hostname is `rex-%l`: systemd expands `%l` to the short hostname, so each box
-gets its own node (for example `rex-devbox-james`).
+`home.nix` runs the rex server as the `rex` systemd user service. It listens
+only on its unix socket, `/run/user/<uid>/rex/server.sock`. The laptop reaches
+it through an ssh forward of that socket, over the devbox's SSM ssh connection.
 
-On a new box, log in to atuin and approve the rex node once, from your laptop:
+On a new box, log in to atuin once, from your laptop:
 
 ```sh
-ssh -t <devbox> just onboard   # atuin login, then the rex sign-in link
+ssh -t <devbox> just onboard
 ```
+
+### Connect from the Mac
+
+Add a host next to the devbox's SSM block in `~/.ssh/config` (`nd devbox
+ssh-config <devbox>` prints that block):
+
+```sshconfig
+Host rex-devbox-<user>
+    HostName <instance ID>
+    User <user>
+    ForwardAgent yes
+    ProxyCommand aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters portNumber=%p --region <region> --profile ngrok-devbox-user
+    LocalForward /Users/<mac user>/.ssh/rex-devbox-<user>.sock /run/user/<uid>/rex/server.sock
+    StreamLocalBindUnlink yes
+    ExitOnForwardFailure yes
+    ServerAliveInterval 30
+    # A session, not -N: sshd forwards the agent and runs ~/.ssh/rc only for a session.
+    RemoteCommand exec sleep infinity
+```
+
+Then open the forward and add the host to rex once:
+
+```sh
+ssh -f rex-devbox-<user>
+rex hosts add devbox-<user> unix:///Users/<mac user>/.ssh/rex-devbox-<user>.sock
+```
+
+`~/.ssh/rc` points `~/.ssh/agent.sock` at the forwarded agent, and `.zshrc`
+uses it, so git over ssh works in rex shells while the forward is open. The
+open session also keeps the devbox's idle shutdown from stopping it.
 
 ## Day-to-day
 
@@ -73,7 +102,7 @@ uncommitted changes here.
 └── home/              # mirror of $HOME, symlinked in by install.sh
     ├── .gitconfig
     ├── .gitignore_global
-    ├── .justfile      # recipes run from $HOME, e.g. `just setup-rex-tailscale`
+    ├── .justfile      # recipes run from $HOME, e.g. `just onboard`
     ├── .zshenv        # nix on PATH for `ssh box <cmd>`
     ├── .zshrc
     ├── .zsh_aliases

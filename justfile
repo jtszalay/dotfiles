@@ -16,7 +16,7 @@ apply:
     nix profile upgrade dotfiles
     HOME_MANAGER_BACKUP_EXT=hm-bak "$(nix build --no-link --print-out-paths {{ _dotfiles }}#homeConfigurations.james.activationPackage)/activate"
 
-# Show the rex server's status and recent log (tailscale login URL on first start)
+# Show the rex server's status and recent log
 rex-status:
     systemctl --user status rex --no-pager || true
     journalctl --user -u rex -n 30 --no-pager

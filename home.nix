@@ -15,14 +15,6 @@
 
   programs.rex.enable = true;
 
-  services.rex = {
-    enable = true;
-    tailscale = {
-      enable = true;
-      # systemd expands %l to the short hostname, so each devbox gets its own tailnet node.
-      hostname = "rex-%l";
-      allowTailnetMembers = true;
-      advertiseTags = [ "tag:work" ];
-    };
-  };
+  # The server listens only on its unix socket. Clients reach it through an ssh forward.
+  services.rex.enable = true;
 }
