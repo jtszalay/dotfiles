@@ -17,7 +17,7 @@ setopt HIST_VERIFY               # Don't execute immediately upon history expans
 
 unsetopt autocd
 
-export PATH=$HOME/bin:$HOME/.local/bin:$PATH
+export PATH=$HOME/.bun/bin:$HOME/bin:$HOME/.local/bin:$PATH
 
 # Strip stale mise install paths injected by parent processes — most
 # commonly VS Code Remote's resolved shell env, captured at server
@@ -38,4 +38,21 @@ source <(jj util completion zsh)
 
 source ~/.zsh_aliases
 
-eval "$(zellij setup --generate-auto-start zsh)"
+#eval "$(zellij setup --generate-auto-start zsh)"
+
+# Follow the newest SSH connection's forwarded agent (symlink maintained by
+# ~/.ssh/rc) so long-lived shells survive VS Code reconnects.
+if [ -L "$HOME/.ssh/agent.sock" ]; then
+	export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
+fi
+
+# mise marker: begin frontend/scripts/setup
+if [ -z "${MISE_SHELL:-}" ]; then
+  if [ -x "$HOME/.local/bin/mise" ]; then
+    export PATH="$HOME/.local/bin:$PATH"
+  fi
+  if command -v mise >/dev/null 2>&1; then
+    eval "$(mise activate zsh)"
+  fi
+fi
+# mise marker: end frontend/scripts/setup
