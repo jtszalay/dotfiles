@@ -30,6 +30,7 @@
             gh
             go
             jujutsu          # jj
+            just
             nodejs           # `npm i -g jj-stack @openai/codex` after install
             starship
             zellij

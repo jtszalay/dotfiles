@@ -88,7 +88,7 @@ home-manager writes `~/.ssh/config`, so do not put it under `home/`.
 
 ## What's in the flake
 
-- nixpkgs: `atuin`, `cargo-binstall`, `delta`, `gh`, `go`, `jujutsu` (jj), `nodejs`,
+- nixpkgs: `atuin`, `cargo-binstall`, `delta`, `gh`, `go`, `jujutsu` (jj), `just`, `nodejs`,
   `starship`, `zellij`.
 - **`jj-domino`** — pulled from upstream flake
   (`github:zombiezen/jj-domino`), not nixpkgs.
