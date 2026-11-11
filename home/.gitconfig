@@ -95,3 +95,5 @@
 	directory = /opt/ngrok/.cache/ngrok-api-python/.git
 [init]
 	defaultBranch = main
+[url "git@github.com:"]
+	pushInsteadOf = https://github.com/
