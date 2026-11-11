@@ -29,6 +29,8 @@
             delta            # syntax-highlighting pager for diffs (jj uses it)
             gh
             go
+            gum              # screenr picker
+            screen
             jujutsu          # jj
             just
             nodejs           # `npm i -g jj-stack @openai/codex` after install
