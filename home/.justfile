@@ -15,6 +15,6 @@ setup-atuin:
         exit 1
       fi
       echo "Log in to atuin. Get the key on a machine that is logged in: atuin key"
-      atuin login -u ngrokjames
+      atuin login
     fi
     atuin sync
