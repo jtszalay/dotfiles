@@ -74,6 +74,26 @@
         "type": "github"
       }
     },
+    "leaf": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794492741,
+        "narHash": "sha256-xG91g2AUTy6+nbj1T/yl6/XAiJgW/kz/Yh8SGmhMnb0=",
+        "owner": "DeepanshuMishraa",
+        "repo": "leaf",
+        "rev": "1fd9573697c2e2507cff5ef07a4b6f93a06e5729",
+        "type": "github"
+      },
+      "original": {
+        "owner": "DeepanshuMishraa",
+        "repo": "leaf",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1772674223,
@@ -126,6 +146,7 @@
         "flake-utils": "flake-utils",
         "home-manager": "home-manager",
         "jj-domino": "jj-domino",
+        "leaf": "leaf",
         "nixpkgs": "nixpkgs_2",
         "rex": "rex"
       }

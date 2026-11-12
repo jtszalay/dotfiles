@@ -5,6 +5,11 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     jj-domino.url = "github:zombiezen/jj-domino";
+    # leaf: terminal reader + diff reviewer with a Rex plugin (`leaf rex install`).
+    leaf = {
+      url = "github:DeepanshuMishraa/leaf";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -16,7 +21,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, jj-domino, home-manager, rex }:
+  outputs = { self, nixpkgs, flake-utils, jj-domino, leaf, home-manager, rex }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
@@ -37,6 +42,10 @@
             starship
             zellij
             jj-domino.packages.${system}.default
+            # Upstream package.nix leaves out sqlite and (on Linux) alsa-lib, which leaf links against.
+            (leaf.packages.${system}.default.overrideAttrs (old: {
+              buildInputs = old.buildInputs ++ [ pkgs.sqlite ] ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.alsa-lib;
+            }))
           ];
         };
       })

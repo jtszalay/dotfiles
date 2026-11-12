@@ -13,7 +13,7 @@ bump:
 
 # Apply current flake.nix selection without bumping pins
 apply:
-    nix profile upgrade dotfiles
+    nix profile upgrade --all
     HOME_MANAGER_BACKUP_EXT=hm-bak "$(nix build --no-link --print-out-paths {{ _dotfiles }}#homeConfigurations.james.activationPackage)/activate"
 
 # Show the rex server's status and recent log
