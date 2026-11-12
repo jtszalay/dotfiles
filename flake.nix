@@ -24,13 +24,18 @@
   outputs = { self, nixpkgs, flake-utils, jj-domino, leaf, home-manager, rex }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs {
+          inherit system;
+          # claude-code is unfree; allow it by name rather than everything.
+          config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "claude-code" ];
+        };
       in {
         packages.default = pkgs.buildEnv {
           name = "personal-tools";
           paths = with pkgs; [
             atuin
             cargo-binstall
+            claude-code
             delta            # syntax-highlighting pager for diffs (jj uses it)
             gh
             go
